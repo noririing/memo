@@ -1,0 +1,153 @@
+
+find /etc/rc.d/* -name *init.tfa*
+find /etc/rc.d/* -name *ohasd*
+find /etc/rc.d/* -name *init.ohasd*
+
+rm -rf /etc/rc.d/rc0.d/K15ohasd
+rm -rf /etc/rc.d/rc1.d/K15ohasd
+rm -rf /etc/rc.d/rc2.d/K15ohasd
+rm -rf /etc/rc.d/rc3.d/S96ohasd
+rm -rf /etc/rc.d/rc4.d/K15ohasd
+rm -rf /etc/rc.d/rc5.d/S96ohasd
+rm -rf /etc/rc.d/rc6.d/K15ohasd
+rm -rf /etc/rc.d/init.d/init.ohasd
+rm -rf /etc/rc.d/init.d/ohasd
+rm -rf /etc/rc.d/init.d/init.tfa
+
+rm -rf /etc/oraInst.loc
+rm -rf /etc/oratab
+rm -rf /etc/inittab.tfa
+rm -rf /etc/inittab.no_tfa
+rm -rf /etc/oracle
+rm -rf /etc/inittab.no_crs
+rm -rf /etc/inittab.crs
+
+----------------------------------------------------------------------------------------------------
+vi /etc/hosts
+
+192.168.11.171    node171.localdomain    node171
+192.168.11.172    node172.localdomain    node172
+
+192.168.100.171    node171-priv.localdomain    node171-priv
+192.168.100.172    node172-priv.localdomain    node172-priv
+
+192.168.11.173    node171-vip.localdomain    node171-vip
+192.168.11.174    node172-vip.localdomain    node172-vip
+----------------------------------------------------------------------------------------------------
+vi /etc/security/limits.conf
+
+@oinstall    soft    nproc   2047
+@oinstall    hard   nproc   16384
+@oinstall    soft    nofile   1024
+@oinstall    hard   nofile   65536
+@oinstall    soft    stack   10240
+@oinstall    hard   stack   32768
+----------------------------------------------------------------------------------------------------
+vi /etc/sysctl.conf
+
+kernel.shmall = 2097152
+kernel.shmmax = 536870912
+kernel.shmmni = 4096
+kernel.sem = 250 32000 100 128
+fs.file-max = 6815744
+fs.aio-max-nr = 1048576
+net.ipv4.ip_local_port_range = 9000 65500
+net.core.rmem_default = 262144
+net.core.rmem_max = 4194304
+net.core.wmem_default = 262144
+net.core.wmem_max = 1048576
+----------------------------------------------------------------------------------------------------
+
+
+service iptables stop
+service ip6tables stop
+
+chkconfig iptables off
+chkconfig ip6tables off
+
+chkconfig --list | grep iptables
+chkconfig --list | grep ip6tables
+
+#getenforce
+
+Oracle Linux 5
+# cd /etc/yum.repos.d
+# wget http://public-yum.oracle.com/public-yum-el5.repo
+
+Oracle Linux 6
+# cd /etc/yum.repos.d
+# wget http://public-yum.oracle.com/public-yum-ol6.repo
+
+
+export LANG=C
+oracle-rdbms-server-11gR2-preinstall-verify
+
+groupadd -g 54323 oper 
+groupadd -g 54324 asmadmin 
+groupadd -g 54325 asmdba 
+groupadd -g 54326 asmoper 
+groupadd -g 54327 backupdba
+groupadd -g 54328 dgdba
+groupadd -g 54329 kmdba
+
+
+useradd -u 54322 -g oinstall -G asmadmin,asmdba,asmoper grid
+usermod -u 54321 -g oinstall -G dba,oper,asmdba,backupdba,dgdba,kmdba oracle
+
+useradd -u 54323 -g oinstall -G dba,oper,asmdba,backupdba,dgdba,kmdba ora11
+useradd -u 54324 -g oinstall -G dba,oper,asmdba,backupdba,dgdba,kmdba ora12
+passwd ora11
+passwd ora12
+
+id grid
+id oracle
+
+passwd grid
+passwd oracle
+
+----------------------------------------------------------------------------------------------------
+visudo
+oracle  ALL=(ALL) NOPASSWD:ALL
+grid    ALL=(ALL) NOPASSWD:ALL
+ora11   ALL=(ALL) NOPASSWD:ALL
+ora12   ALL=(ALL) NOPASSWD:ALL
+
+----------------------------------------------------------------------------------------------------
+
+yum install iscsi-initiator-utils -y
+service iscsi start
+iscsiadm -m discovery -t sendtargets -p 192.168.11.160
+iscsiadm -m node -T iqn.2006-01.com.openfiler:tsn.2f0d10783724 -p 192.168.11.160 --login
+dmesg
+
+vi /etc/udev/rules.d/99-oracle.rules
+KERNEL=="sd[c-d]",ACTION=="add|change",OWNER="grid",GROUP="asmadmin" ,MODE="0660"
+
+# #OL5
+# /sbin/udevcontrol reload_rules
+# #OL6
+# udevadm control --reload-rules
+# #OL5 and OL6
+# /sbin/start_udev
+
+
+ls -al /dev/sd*
+
+mkdir -p /u01/app; rm -rf /u01/app/* ; chmod -R 775 /u01/app ; chown -R grid:oinstall /u01/app
+
+mkdir -p /u11/app; rm -rf /u11/app/* ; chmod -R 775 /u11/app ; chown -R ora11:oinstall /u11/app
+mkdir -p /u12/app; rm -rf /u12/app/* ; chmod -R 775 /u12/app ; chown -R grid:oinstall /u12/app
+mkdir -p /u01/app; rm -rf /u01/app/* ; chmod -R 775 /u01/app ; chown -R oracle:oinstall /u01/app
+
+dd if=/dev/zero of=/dev/sdb;dd if=/dev/zero of=/dev/sdc;dd if=/dev/zero of=/dev/sdd
+
+echo inventory_loc=/opt/oracle/oraInventory >> /etc/oraInst.loc
+echo inst_group=oinstall >> /etc/oraInst.loc
+chown grid:oinstall /etc/oraInst.loc
+chmod 664 /etc/oraInst.loc
+
+
+#11.2.0.4
+/tmp/grid/runcluvfy.sh stage -pre crsinst -n node171.localdomain,node172.localdomain -verbose
+/tmp/grid/runInstaller -ignoreSysPrereqs -silent -responseFile /home/grid/grid.rsp -force
+
