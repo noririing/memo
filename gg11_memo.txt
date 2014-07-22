@@ -1,0 +1,69 @@
+
+--------------------------------------------------
+CREATE TABLE GG11.T1(
+   COL1    NUMBER
+  ,COL2    VARCHAR2(30)
+  ,COL3    VARCHAR2(30)
+  ,COL4    DATE
+  ,CONSTRAINTS T1_PK PRIMARY KEY(COL1)
+);
+--------------------------------------------------
+cd $ORACLE_OGG_HOME
+mkdir ./dirdat/c2
+./ggsci
+edit param c2
+--------------------------------------------------
+EXTRACT c2
+SETENV (NLS_LANG="Japanese_Japan.AL32UTF8")
+USERID gg11@ora11,PASSWORD welcome1
+EXTTRAIL ./dirdat/c2/lt
+--FETCHOPTIONS FETCHPKUPDATECOLS
+REPORTCOUNT EVERY 10 SECONDS, RATE
+GETTRUNCATES
+TABLE GG11.T1;
+--------------------------------------------------
+dblogin userid gg11,password welcome1
+add trandata GG11.T1
+--------------------------------------------------
+add extract c2, tranlog, begin now, threads 1
+add exttrail ./dirdat/c2/lt , extract c2, megabytes 50
+--------------------------------------------------
+start c2
+info c2
+--------------------------------------------------
+EXTRACT p2
+REPORTCOUNT EVERY 10 SECONDS, RATE
+PASSTHRU
+RMTHOST 192.168.56.122, MGRPORT 7809
+RMTTRAIL ./dirdat/p2/rt
+TABLE GG11.*;
+--------------------------------------------------
+add extract p2 , exttrailsource ./dirdat/c2/lt
+add rmttrail ./dirdat/p2/rt, extract p2, megabytes 50
+--------------------------------------------------
+start p2
+info p2
+--------------------------------------------------
+REPLICAT r2
+setenv (NLS_LANG="Japanese_Japan.AL32UTF8")
+USERID gg11@ora11,PASSWORD welcome1
+discardfile ./dirrpt/r2, APPEND, MEGABYTES 50
+ASSUMETARGETDEFS
+--HANDLECOLLISIONS
+--SQLEXEC "ALTER SESSION SET TRACEFILE_IDENTIFIER='GG_DEBUG'"
+--SQLEXEC "ALTER SESSION SET SQL_TRACE=TRUE"
+REPORTCOUNT EVERY 10 SECONDS, RATE
+GETTRUNCATES
+MAP GG11.T1, TARGET GG11.T1;
+--------------------------------------------------
+vi GLOBALS
+GGSCHEMA gg11
+CHECKPOINTTABLE gg11.checkpointtable
+--------------------------------------------------
+dblogin userid gg11,password welcome1
+add CHECKPOINTTABLE gg11.checkpointtable
+--------------------------------------------------
+add replicat r2, exttrail ./dirdat/p2/rt
+--------------------------------------------------
+start r2
+info r2
