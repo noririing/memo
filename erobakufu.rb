@@ -5,7 +5,6 @@ require "nokogiri"
 require "fileutils"
 
 INDEX_URL = 'http://bakufu.jp/'
-MATCH_URL = 'img\.bakufu\.jp'
 SAVE_DIR = './img'
 
 def get_jpg_url(url)
@@ -13,7 +12,7 @@ def get_jpg_url(url)
   a = Array.new
   d.xpath('//a').each do | n |
     s = n.attribute('href').value
-    if  /MATCH_URL/ =~ s
+    if /img\.bakufu\.jp/ =~ s
       a << s
     end
   end
@@ -22,13 +21,10 @@ end
 
 
 def save_jpg(dirpath,url)
-  fname = File.basename(url)
-  open(dirpath + '/' + fname, 'wb') do |f|
-      open(url) do |d|
-          f.write(d.read)
-      end
-  end
-  sleep 1
+  fname = dirpath + '/' + File.basename(url)
+  oscmd ="curl -f --connect-timeout 180 --max-time 300 -o \"#{fname}\" #{url}"
+  system(oscmd) 
+  sleep 3 
 end
 
 
@@ -52,9 +48,10 @@ def dl_img()
       FileUtils.mkdir(fdpath)
       a = get_jpg_url url
       a.each do |url|
-        save_jpg fdpath url
+        save_jpg(fdpath,url)
       end
     end
   }
 end
 
+dl_img
