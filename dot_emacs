@@ -1,0 +1,94 @@
+;; .emacs
+
+;;; uncomment this line to disable loading of "default.el" at startup
+(setq inhibit-default-init t)
+
+;; enable visual feedback on selections
+(setq transient-mark-mode t)
+
+;; default to better frame titles
+(setq frame-title-format
+      (concat  "%b - emacs@" (system-name)))
+
+;; default to unified diffs
+(setq diff-switches "-u")
+
+;; Load anth
+(push "/usr/share/emacs/site-lisp/anthy/" load-path)
+(load-library "anthy")
+(setq default-input-method "japanese-anthy")
+
+;; No Backup File
+(setq make-backup-files nil)
+
+;; No AutoSave File 
+(setq auto-save-default nil)
+
+;; SetUp Japanese Langage(UFT-8)
+(set-language-environment "Japanese")
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-buffer-file-coding-system 'utf-8)
+(setq default-buffer-file-coding-system 'utf-8)
+(prefer-coding-system 'utf-8)
+(setq default-coding-systems 'utf-8)
+
+;; Current Line HightLight
+(global-hl-line-mode)
+
+;; Current Line Number
+(column-number-mode t)
+
+;; Current Line Save
+(require 'saveplace)
+(setq-default save-place t)
+
+;; 対応する括弧 
+(show-paren-mode 1)
+(setq show-paren-style 'mixed)
+
+;; 行末の空白を表示
+(setq-default show-trailing-whitespace t)
+
+;; 補完時に大文字小文字を区別しない
+(setq completion-ignore-case t)
+(setq read-file-name-completion-ignore-case t)
+
+;; 補完可能なものを随時表示
+;; 少しうるさい
+(icomplete-mode 1)
+
+;; 履歴数を大きくする
+(setq history-length 10000)
+
+;; 最近開いたファイルを保存する数を増やす
+(setq recentf-max-saved-items 10000)
+
+;; ファイル名が重複していたらディレクトリ名を追加する。
+(require 'uniquify)
+(setq uniquify-buffer-name-style 'post-forward-angle-brackets)
+
+;; メニューバーを消す
+(menu-bar-mode -1)
+
+;; ツールバーを消す
+(tool-bar-mode -1)
+
+;; オープニングメッセージを表示しない
+(setq inhibit-startup-message t)
+
+;; エラー音をならなくする
+(setq ring-bell-function 'ignore)
+
+;; モードラインに情報を表示
+(display-time)
+(line-number-mode 1)
+(column-number-mode 1)
+
+;; 現在の関数名をモードラインに表示
+(which-function-mode 1)
+
+;; タブをスペース4字
+(setq-default tab-width 4 indent-tabs-mode nil)
+
+

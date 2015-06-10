@@ -23,3 +23,7 @@ export NLS_LANG=Japanese_Japan.AL32UTF8
 export LD_LIBRARY_PATH=$ORACLE_HOME/lib:$ORACLE_OGG_HOME:$LD_LIBRARY_PATH
 export PATH=$JAVA_HOME/bin:$ORACLE_HOME/bin:$PATH
 
+
+alias emacs='emacs -nw'
+
+
