@@ -1,0 +1,25 @@
+# .bash_profile
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+	. ~/.bashrc
+fi
+
+# User specific environment and startup programs
+
+export PS1='[\u@\h \t \W]\$' 
+
+PATH=$PATH:$HOME/bin
+
+export PATH
+
+export ORACLE_HOME=/u11/app/oracle/product/11.2.0/dbhome_1
+export ORACLE_SID=ora11
+#export ORACLE_SID=ora11s
+export ORACLE_OGG_HOME=/u11/app/oracle/goldengate_11.2.1.0.23
+export JAVA_HOME=/u11/app/oracle/jdk1.7.0_60
+#export NLS_LANG=Japanese_Japan.AL32UTF8
+export NLS_LANG=Japanese_Japan.AL32UTF8
+export LD_LIBRARY_PATH=$ORACLE_HOME/lib:$ORACLE_OGG_HOME:$LD_LIBRARY_PATH
+export PATH=$JAVA_HOME/bin:$ORACLE_HOME/bin:$PATH
+
